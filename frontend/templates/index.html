@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptShield — AI Prompt Security</title>
+
+<style>
+:root {
+  --bg:#0b1020;
+  --bg2:#0f172a;
+  --card:#121a2f;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --accent:#6d7cff;
+  --radius:14px;
+  --blur:20px;
+  --shadow:0 10px 40px rgba(0,0,0,.35);
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  font-family:var(--font);
+  background:linear-gradient(160deg,var(--bg),var(--bg2));
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+a { text-decoration:none; color:inherit; }
+
+homepage-app {
+  display:block;
+}
+
+/* Background motion */
+.bg-layer {
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(109,124,255,.15),transparent 40%),
+    radial-gradient(circle at 80% 80%,rgba(109,124,255,.12),transparent 40%);
+  animation:bgMove 25s linear infinite;
+  z-index:-1;
+}
+
+@keyframes bgMove {
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-40px)}
+  100%{transform:translateY(0)}
+}
+
+/* Layout */
+.container {
+  max-width:1200px;
+  margin:auto;
+  padding:2rem;
+}
+
+/* Navbar */
+.nav {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:5rem;
+}
+
+.logo {
+  font-weight:600;
+  font-size:1.2rem;
+  letter-spacing:.3px;
+}
+
+.nav-links {
+  display:flex;
+  gap:1rem;
+}
+
+.nav-links a {
+  padding:.5rem 1rem;
+  border-radius:10px;
+  font-size:.9rem;
+  color:var(--muted);
+  transition:.2s;
+}
+
+.nav-links a:hover {
+  color:white;
+}
+
+.nav-links .primary {
+  background:linear-gradient(90deg,#6d7cff,#8f7cff);
+  color:white;
+}
+
+/* Hero */
+.hero {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:2rem;
+  text-align:center;
+}
+
+.hero h1 {
+  font-size:clamp(2.2rem,6vw,3.5rem);
+  font-weight:700;
+  letter-spacing:-1px;
+}
+
+.hero p {
+  color:var(--muted);
+  font-size:1.1rem;
+  line-height:1.6;
+  max-width:620px;
+  margin:auto;
+}
+
+.hero-actions {
+  display:flex;
+  justify-content:center;
+  gap:1rem;
+  flex-wrap:wrap;
+}
+
+.btn {
+  padding:.9rem 1.6rem;
+  border-radius:12px;
+  font-weight:500;
+  font-size:.95rem;
+  transition:.25s;
+  border:1px solid rgba(255,255,255,.1);
+  background:transparent;
+  color:white;
+}
+
+.btn.primary {
+  background:linear-gradient(90deg,#6d7cff,#8f7cff);
+  border:none;
+}
+
+.btn:hover {
+  transform:translateY(-2px);
+  box-shadow:var(--shadow);
+}
+
+/* Feature cards */
+.features {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:1.5rem;
+  margin-top:5rem;
+}
+
+.feature {
+  background:rgba(18,26,47,.85);
+  backdrop-filter:blur(var(--blur));
+  padding:1.8rem;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  transition:.3s;
+}
+
+.feature:hover {
+  transform:translateY(-4px);
+}
+
+.feature h3 {
+  margin-bottom:.5rem;
+  font-size:1.1rem;
+}
+
+.feature p {
+  color:var(--muted);
+  font-size:.95rem;
+  line-height:1.5;
+}
+
+/* Animations */
+.fade {
+  opacity:0;
+  transform:translateY(20px);
+  animation:fadeUp .9s ease forwards;
+}
+
+.delay1 { animation-delay:.2s; }
+.delay2 { animation-delay:.4s; }
+.delay3 { animation-delay:.6s; }
+
+@keyframes fadeUp {
+  to { opacity:1; transform:none; }
+}
+
+/* Responsive */
+@media (max-width:600px){
+  .nav-links { display:none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg-layer"></div>
+
+<homepage-app></homepage-app>
+
+<script>
+class HomepageApp extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="container">
+        <div class="nav fade">
+          <div class="logo">PromptShield</div>
+          <div class="nav-links">
+            <a href="/login">Sign In</a>
+            <a href="/signup" class="primary">Get Started</a>
+          </div>
+        </div>
+
+        <section class="hero">
+          <h1 class="fade delay1">PromptShield</h1>
+          <p class="fade delay2">AI Prompt Security & Quality Intelligence</p>
+
+          <div class="hero-actions fade delay3">
+            <a href="/signup" class="btn primary">Get Started</a>
+            <a href="/login" class="btn">Sign In</a>
+          </div>
+        </section>
+
+        <section class="features">
+          <div class="feature fade delay1">
+            <h3>Prompt Risk Detection</h3>
+            <p>Identify unsafe, biased or harmful prompts before execution.</p>
+          </div>
+
+          <div class="feature fade delay2">
+            <h3>Quality Scoring</h3>
+            <p>Analyze clarity, intent, and optimization potential.</p>
+          </div>
+
+          <div class="feature fade delay3">
+            <h3>Enterprise Ready</h3>
+            <p>Session-based secure architecture with cloud storage.</p>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+}
+
+customElements.define("homepage-app", HomepageApp);
+</script>
+
+</body>
+</html>

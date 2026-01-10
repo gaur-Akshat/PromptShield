@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — PromptShield</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root[data-theme="dark"]{
+  --bg:#0a0a0a; --card:#111; --side:#0e0e0e;
+  --text:#f5f5f5; --muted:#888;
+  --border:rgba(255,255,255,.08);
+  --accent:#4f46e5; --accent-hover:#4338ca;
+  --success:#10b981; --warning:#f59e0b; --error:#ef4444;
+}
+:root[data-theme="light"]{
+  --bg:#ffffff; --card:#ffffff; --side:#f8f9fa;
+  --text:#111; --muted:#666;
+  --border:rgba(0,0,0,.08);
+  --accent:#4f46e5; --accent-hover:#4338ca;
+  --success:#059669; --warning:#d97706; --error:#dc2626;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Inter,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+}
+.signup-container{display:flex;width:100%}
+.sidebar{
+  flex:1;max-width:480px;background:var(--side);
+  padding:60px;border-right:1px solid var(--border)
+}
+.sidebar h2{font-size:2rem;margin-bottom:24px}
+.info-list{list-style:none;margin-top:48px}
+.info-item{margin-bottom:32px}
+.info-item h4{font-size:.9rem;margin-bottom:8px}
+.info-item p{font-size:.85rem;color:var(--muted)}
+
+.form-area{
+  flex:2;display:flex;align-items:center;justify-content:center;
+  padding:40px;position:relative
+}
+
+.theme-toggle{
+  position:absolute;top:24px;right:24px;
+  width:36px;height:36px;border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--card);cursor:pointer;
+  color:var(--muted)
+}
+.theme-toggle:hover{color:var(--text)}
+
+.auth-card{max-width:440px;width:100%}
+
+.logo-area{text-align:center;margin-bottom:20px;cursor:pointer}
+.logo-upload-box{
+  width:44px;height:44px;background:var(--accent);
+  border-radius:8px;margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center
+}
+.logo-area h1{font-size:1.25rem}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:span 2}
+
+.form-group label{
+  font-size:.75rem;color:var(--muted);display:block;margin-bottom:6px
+}
+.form-group input{
+  width:100%;height:42px;background:transparent;
+  border:1px solid var(--border);border-radius:8px;
+  padding:0 14px;color:var(--text)
+}
+.form-group input:focus{border-color:var(--accent);outline:none}
+
+.strength-meter{display:flex;gap:4px;margin-top:6px}
+.strength-bar{flex:1;height:3px;background:var(--border)}
+.strength-bar.active{background:currentColor}
+
+.strength-text{font-size:.65rem;margin-top:4px}
+
+.checkbox-group{margin:20px 0;font-size:.8rem;color:var(--muted)}
+
+.btn-primary{
+  width:100%;height:44px;background:var(--accent);
+  color:white;border:none;border-radius:8px;
+  font-weight:600;cursor:pointer
+}
+.btn-primary:hover{background:var(--accent-hover)}
+
+.auth-footer{text-align:center;font-size:.85rem;margin-top:20px}
+.auth-footer a{color:var(--accent);text-decoration:none}
+
+@media(max-width:1024px){.sidebar{display:none}}
+</style>
+</head>
+
+<body>
+
+<div class="signup-container">
+
+<aside class="sidebar">
+<h2>The systematic firewall for the AI-native enterprise.</h2>
+<ul class="info-list">
+<li class="info-item"><h4>Prompt Sanitization</h4><p>Block injection and exfiltration attempts.</p></li>
+<li class="info-item"><h4>Enterprise Governance</h4><p>Brand and policy compliance filters.</p></li>
+<li class="info-item"><h4>Audit Trails</h4><p>Trace all AI interactions.</p></li>
+</ul>
+</aside>
+
+<main class="form-area">
+
+<button class="theme-toggle" id="theme-btn">🌙</button>
+
+<div class="auth-card">
+
+<label class="logo-area">
+<div class="logo-upload-box">🛡</div>
+<h1>Join PromptShield</h1>
+</label>
+
+<p style="text-align:center;color:var(--muted);margin-bottom:24px;">
+Start securing your AI intelligence today
+</p>
+
+<form id="signup-form">
+
+<div class="form-grid">
+<div class="form-group full">
+<label>Username</label>
+<input id="username" required>
+</div>
+
+<div class="form-group full">
+<label>Email</label>
+<input id="email" type="email" required>
+</div>
+
+<div class="form-group">
+<label>Password</label>
+<input id="password" type="password" required>
+<div class="strength-meter">
+<div id="b1" class="strength-bar"></div>
+<div id="b2" class="strength-bar"></div>
+<div id="b3" class="strength-bar"></div>
+<div id="b4" class="strength-bar"></div>
+</div>
+<span id="strength-text" class="strength-text"></span>
+</div>
+
+<div class="form-group">
+<label>Confirm</label>
+<input id="confirm" type="password" required>
+</div>
+</div>
+
+<label class="checkbox-group">
+<input type="checkbox" id="terms" required> I agree to Terms & Privacy
+</label>
+
+<button class="btn-primary" id="signup-btn">Create Account</button>
+
+</form>
+
+<div class="auth-footer">
+Already have an account? <a href="/login">Sign in</a>
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+const root=document.documentElement;
+const themeBtn=document.getElementById("theme-btn");
+
+function setTheme(t){
+  root.setAttribute("data-theme",t);
+  localStorage.setItem("ps-theme",t);
+  themeBtn.textContent=t==="dark"?"🌙":"☀️";
+}
+setTheme(localStorage.getItem("ps-theme")||"dark");
+
+themeBtn.onclick=()=>setTheme(root.getAttribute("data-theme")==="dark"?"light":"dark");
+
+const pwd=document.getElementById("password");
+const confirm=document.getElementById("confirm");
+const bars=[b1,b2,b3,b4];
+const strengthText=document.getElementById("strength-text");
+
+pwd.oninput=()=>{
+  let s=0;
+  if(pwd.value.length>=8)s++;
+  if(/[A-Z]/.test(pwd.value))s++;
+  if(/[0-9]/.test(pwd.value))s++;
+  if(/[^A-Za-z0-9]/.test(pwd.value))s++;
+
+  const colors=["#ef4444","#f59e0b","#3b82f6","#10b981"];
+  const labels=["Weak","Fair","Good","Strong"];
+
+  bars.forEach((b,i)=>{
+    b.classList.toggle("active",i<s);
+    b.style.color=colors[s-1];
+  });
+
+  strengthText.textContent=pwd.value?labels[s-1]:"";
+  strengthText.style.color=colors[s-1];
+};
+
+document.getElementById("signup-form").addEventListener("submit",async e=>{
+  e.preventDefault();
+
+  if(pwd.value!==confirm.value){
+    confirm.style.borderColor="var(--error)";
+    return;
+  }
+
+  const res=await fetch("/api/signup",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      username:username.value.trim(),
+      email:email.value.trim(),
+      password:pwd.value
+    })
+  });
+
+  const data=await res.json();
+
+  if(data.success){
+    window.location.href="/dashboard";
+  }else{
+    alert(data.message||"Signup failed");
+  }
+});
+</script>
+
+</body>
+</html>

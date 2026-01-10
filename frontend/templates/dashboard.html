@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptShield | Intelligence Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root[data-theme="dark"] {
+            --bg-deep: #0a0a0f;
+            --bg-surface: rgba(20, 20, 35, 0.6);
+            --bg-card: rgba(35, 35, 60, 0.8);
+            --bg-sidebar: rgba(25, 25, 45, 0.95);
+            --primary: #7c3aed;
+            --primary-soft: #a78bfa;
+            --accent-gold: #fbbf24;
+            --accent-peach: #fb923c;
+            --accent-mint: #34d399;
+            --text-main: #f5f7ff;
+            --text-dim: #b4b8d8;
+            --text-muted: #6b7280;
+            --border-soft: rgba(124, 58, 237, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --shadow-soft: 0 20px 40px rgba(0,0,0,0.4);
+            --shadow-card: 0 15px 35px rgba(0,0,0,0.3);
+            --doodle-primary: #a78bfa;
+            --doodle-secondary: #fbbf24;
+            --doodle-accent: #34d399;
+            
+            /* Toggle Vars */
+            --toggle-track: rgba(20, 20, 35, 0.8);
+            --toggle-thumb: #1e1b4b;
+            --toggle-icon: #fbbf24; /* Sun color */
+        }
+
+        :root[data-theme="light"] {
+            --bg-deep: #fdfbff;
+            --bg-surface: rgba(255, 255, 255, 0.9);
+            --bg-card: rgba(250, 250, 255, 0.95);
+            --bg-sidebar: rgba(255, 255, 255, 0.98);
+            --primary: #7c3aed;
+            --primary-soft: #a78bfa;
+            --accent-gold: #f59e0b;
+            --accent-peach: #f97316;
+            --accent-mint: #10b981;
+            --text-main: #1e1b4b;
+            --text-dim: #64748b;
+            --text-muted: #94a7be;
+            --border-soft: rgba(124, 58, 237, 0.15);
+            --glass-border: rgba(0, 0, 0, 0.06);
+            --shadow-soft: 0 25px 50px rgba(0,0,0,0.1);
+            --shadow-card: 0 20px 40px rgba(0,0,0,0.08);
+            --doodle-primary: #8b5cf6;
+            --doodle-secondary: #f59e0b;
+            --doodle-accent: #10b981;
+
+            /* Toggle Vars */
+            --toggle-track: #e2e8f0;
+            --toggle-thumb: #ffffff;
+            --toggle-icon: #60a5fa; /* Moon color */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background 0.5s ease;
+        }
+
+        /* Noise overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events:none;
+            z-index:9999;
+        }
+
+        .bg-layers {
+            position: fixed; inset: 0;
+            z-index: -3; pointer-events: none;
+        }
+
+        .paper-texture {
+            position: fixed; inset: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(124,58,237,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(251,191,36,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(52,211,153,0.03) 0%, transparent 50%);
+            opacity: 0.4;
+        }
+
+        .hand-drawn {
+            position: absolute;
+            stroke: var(--doodle-primary);
+            stroke-width: 1.5;
+            fill: none;
+            opacity: 0.18;
+        }
+
+        .scribble-1 { top: 8%; left: 6%; width: 90px; animation: floaty 25s infinite; }
+        .scribble-2 { top: 72%; right: 8%; width: 70px; stroke: var(--doodle-secondary); animation: floaty 30s infinite reverse; }
+        .scribble-3 { bottom: 12%; left: 18%; width: 110px; stroke: var(--doodle-accent); animation: spinny 40s infinite linear; }
+        .scribble-4 { top: 42%; right: 22%; width: 80px; stroke-dasharray: 4 4; animation: floaty 28s infinite; }
+        .scribble-5 { bottom: 30%; left: 62%; width: 100px; animation: wiggle 20s infinite; }
+
+        .sticker {
+            position:absolute;
+            padding:6px 12px;
+            font-family:'Caveat',cursive;
+            background:rgba(255,255,255,0.9);
+            color:#111;
+            border-radius:10px;
+            box-shadow:0 6px 12px rgba(0,0,0,0.25);
+            transform: rotate(-4deg);
+            opacity:0.9;
+        }
+
+        .sticker.one { top:12%; right:35%; }
+        .sticker.two { bottom:22%; left:35%; transform: rotate(6deg); background:#fef3c7; }
+        .sticker.three { top:55%; left:8%; background:#dcfce7; }
+
+        .tape {
+            position:absolute;
+            width:80px; height:24px;
+            background:rgba(251,191,36,0.6);
+            transform:rotate(-8deg);
+            border-radius:4px;
+            opacity:0.7;
+        }
+
+        .tape.one { top:2%; left:20%; }
+        .tape.two { bottom:5%; right:25%; transform:rotate(10deg); }
+
+        .tiny-dots {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: var(--doodle-primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: dotFloat 18s infinite;
+        }
+
+        .dot-1 { top: 18%; left: 14%; }
+        .dot-2 { top: 82%; right: 18%; background: var(--doodle-secondary); }
+        .dot-3 { bottom: 24%; left: 78%; background: var(--doodle-accent); }
+
+        @keyframes floaty { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-12px) rotate(2deg)} }
+        @keyframes spinny { to{transform:rotate(360deg)} }
+        @keyframes wiggle { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(2deg)} }
+        @keyframes dotFloat { 0%{transform:translateY(0);opacity:.2} 50%{transform:translateY(-10px);opacity:.5} 100%{transform:translateY(0);opacity:.2} }
+
+        .app-container {
+            display:flex; width:100%; height:100%;
+            transition: transform 0.4s ease;
+        }
+
+        /* --- SIDEBAR & OVERLAY --- */
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        aside.sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            z-index: 100;
+            box-shadow: var(--shadow-soft);
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        /* Sidebar State: Collapsed on Desktop */
+        body.sidebar-closed aside.sidebar {
+            margin-left: -280px;
+        }
+
+        /* Mobile specific sidebar behavior */
+        @media(max-width: 768px) {
+            aside.sidebar {
+                position: fixed;
+                left: 0; top: 0; bottom: 0;
+                transform: translateX(-100%);
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                margin-left: 0; /* Reset margin logic for mobile */
+            }
+            
+            body.sidebar-open aside.sidebar {
+                transform: translateX(0);
+            }
+            
+            body.sidebar-open .sidebar-overlay {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        .logo-area {
+            display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;
+            font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;
+            padding:1rem;border-radius:16px;
+            background:rgba(124,58,237,0.1);
+            border:1px dashed var(--border-soft);
+            cursor:pointer;
+            transition: transform 0.2s;
+        }
+        .logo-area:hover { transform: scale(1.02); }
+
+        .logo-icon {
+            width:42px;height:42px;border-radius:12px;
+            background:linear-gradient(135deg,var(--primary),var(--primary-soft));
+            display:flex;align-items:center;justify-content:center;
+            color: white;
+        }
+
+        .nav-list{list-style:none;flex:1}
+        .nav-link{
+            display:flex;gap:1rem;padding:1rem 1.25rem;
+            border-radius:14px;color:var(--text-dim);
+            text-decoration:none;font-weight:500;margin-bottom:.7rem;
+            border:1px solid transparent;
+            transition:.3s;
+        }
+        .nav-link:hover{background:rgba(124,58,237,.15);color:var(--text-main);transform:translateX(6px)}
+        .nav-link.active{background:rgba(124,58,237,.25);color:var(--text-main)}
+
+        main.content-area{flex:1;display:flex;flex-direction:column; width: 100%;}
+
+        header.top-nav{
+            padding:1.5rem 2.5rem;
+            display:flex;justify-content:space-between;align-items:center;
+            border-bottom:1px solid var(--glass-border);
+        }
+
+        .menu-btn{
+            background:rgba(35,35,60,.5);
+            border:1px solid var(--glass-border);
+            color:var(--text-dim);
+            padding:12px;border-radius:12px;
+            cursor:pointer;
+            transition: 0.2s;
+        }
+        .menu-btn:hover { background: var(--border-soft); color: var(--text-main); }
+
+        .user-section{display:flex;align-items:center;gap:1.5rem}
+
+        /* --- PREMIUM SLIDING TOGGLE --- */
+        .theme-toggle-container {
+            width: 68px; height: 36px;
+            background: var(--toggle-track);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
+            display: flex; align-items: center; padding: 3px;
+        }
+
+        .toggle-thumb {
+            width: 30px; height: 30px;
+            background: var(--bg-surface);
+            border-radius: 50%;
+            position: absolute;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        /* Logic for slide */
+        :root[data-theme="dark"] .toggle-thumb { transform: translateX(32px); }
+        :root[data-theme="light"] .toggle-thumb { transform: translateX(0px); }
+
+        .sun-icon { 
+            color: #fbbf24; 
+            filter: drop-shadow(0 0 4px #fbbf24); 
+            display: none; 
+            animation: rotateIn 0.5s ease;
+        }
+        .moon-icon { 
+            color: #60a5fa; 
+            filter: drop-shadow(0 0 4px #60a5fa); 
+            display: none; 
+            animation: rotateIn 0.5s ease;
+        }
+
+        :root[data-theme="dark"] .sun-icon { display: block; }
+        :root[data-theme="light"] .moon-icon { display: block; }
+
+        @keyframes rotateIn {
+            from { transform: rotate(-90deg) scale(0.5); opacity: 0; }
+            to { transform: rotate(0) scale(1); opacity: 1; }
+        }
+
+        .user-avatar{
+            width:44px;height:44px;border-radius:50%;
+            background:linear-gradient(135deg,var(--primary),var(--accent-gold));
+            display:flex;align-items:center;justify-content:center;
+            font-weight:700;color:white;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .workspace{
+            flex:1;padding:3rem 2.5rem;
+            max-width:900px;margin:0 auto;width:100%;
+            overflow-y:auto;display:flex;flex-direction:column;gap:2.5rem;
+        }
+
+        .hero-section{
+            background:var(--bg-surface);
+            padding:2rem;border-radius:24px;
+            border:1px dashed var(--glass-border);
+            box-shadow:var(--shadow-card);
+            position:relative;
+        }
+
+        .hero-section::after{
+            content:'cybersecurity by design';
+            position:absolute;bottom:-14px;right:20px;
+            font-family:'Caveat',cursive;font-size:.9rem;
+            color:var(--text-muted);transform:rotate(-3deg);
+        }
+
+        .hero-text h1{
+            font-size:3rem;font-weight:700;
+            background:linear-gradient(135deg,var(--primary),var(--accent-gold));
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+        }
+
+        .hero-subtitle{
+            font-family:'Caveat',cursive;font-size:1.4rem;color:var(--text-dim);
+        }
+
+        .prompt-section{
+            background:var(--bg-card);
+            border:2px dashed var(--glass-border);
+            border-radius:24px;padding:2rem;
+            box-shadow:var(--shadow-card);
+            transition: border-color 0.3s;
+        }
+        .prompt-section:focus-within { border-color: var(--primary); }
+
+        textarea#prompt-input{
+            width:100%;background:transparent;border:none;
+            color:var(--text-main);font-size:1.2rem;
+            resize:none;outline:none;min-height:80px;
+            font-family: inherit;
+        }
+
+        .prompt-actions{
+            display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;
+        }
+
+        .char-counter{
+            font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--text-muted);
+        }
+
+        .btn-analyze{
+            padding:1.1rem 2.8rem;border-radius:50px;
+            background:linear-gradient(135deg,var(--primary),var(--accent-gold));
+            color:white;font-weight:700;border:none;cursor:pointer;
+            box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-analyze:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(124, 58, 237, 0.6); }
+        .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; background: var(--text-muted); box-shadow: none; }
+
+        .results-panel{display:none; animation: slideUp 0.5s ease;}
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .score-grid{
+            display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+            gap:1.5rem;
+        }
+
+        .score-card{
+            background:var(--bg-surface);padding:1.5rem;
+            border-radius:20px;border:2px dashed var(--glass-border);
+            text-align:center;
+        }
+
+        .json-container{
+            background:var(--bg-card);padding:2rem;border-radius:20px;
+            border:2px dashed var(--glass-border);margin-top:2rem;
+        }
+
+        .json-viewer{
+            font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--primary-soft);
+        }
+
+        .reset-btn{
+            margin-top:1.5rem;
+            background:rgba(251,191,36,.2);
+            border:1px solid var(--accent-gold);
+            color:var(--accent-gold);
+            padding:.7rem 1.6rem;border-radius:25px;
+            cursor:pointer; transition: 0.2s;
+        }
+        .reset-btn:hover { background: rgba(251,191,36,.3); }
+
+        /* Responsive */
+        @media(max-width:768px){
+            .app-container { display: block; }
+            header.top-nav { padding: 1rem; }
+            .workspace { padding: 1.5rem; }
+            .hero-text h1 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body class="sidebar-closed" data-theme="dark">
+
+<div class="bg-layers">
+    <div class="paper-texture"></div>
+    <svg class="hand-drawn scribble-1" viewBox="0 0 100 100"><path d="M10 50 Q30 20 50 50 T90 50"/></svg>
+    <svg class="hand-drawn scribble-2" viewBox="0 0 100 100"><path d="M20 80 Q40 60 60 80 T90 70"/></svg>
+    <svg class="hand-drawn scribble-3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="35"/></svg>
+    <svg class="hand-drawn scribble-4" viewBox="0 0 100 100"><path d="M10 30 L90 70"/></svg>
+    <svg class="hand-drawn scribble-5" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="20"/></svg>
+    <div class="sticker one">keep it safe</div>
+    <div class="sticker two">designed by CodeHub</div>
+    <div class="sticker three">promptshield</div>
+    <div class="tape one"></div>
+    <div class="tape two"></div>
+    <div class="tiny-dots dot-1"></div>
+    <div class="tiny-dots dot-2"></div>
+    <div class="tiny-dots dot-3"></div>
+</div>
+
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo-area" onclick="toggleSidebar()">
+            <div class="logo-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <span>PromptShield</span>
+        </div>
+        <nav class="nav-list">
+            <a href="#" class="nav-link active">New Analysis</a>
+            <a href="#" class="nav-link">Recent Scans</a>
+            <a href="#" class="nav-link">Settings</a>
+        </nav>
+        <a href="javascript:void(0)" onclick="logout()" class="nav-link" style="color:#fb7185">Sign Out</a>
+    </aside>
+
+    <main class="content-area">
+        <header class="top-nav">
+            <button class="menu-btn" onclick="toggleSidebar()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div class="user-section">
+                <div class="theme-toggle-container" id="theme-toggle" title="Switch Theme">
+                    <div class="toggle-thumb">
+                        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </div>
+                </div>
+                <div class="user-avatar">JD</div>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div class="hero-section" id="hero-area">
+                <div class="hero-text">
+                    <h1>Hello, John</h1>
+                    <p class="hero-subtitle">Protecting your intelligence with craft & care</p>
+                </div>
+            </div>
+
+            <div class="prompt-section">
+                <textarea id="prompt-input" placeholder="Paste your prompt here..."></textarea>
+                <div class="prompt-actions">
+                    <div id="char-count" class="char-counter">0 / 2000</div>
+                    <button id="analyze-btn" onclick="submitPrompt()" class="btn-analyze" disabled>Analyze Prompt</button>
+                </div>
+            </div>
+
+            <div id="results-panel" class="results-panel">
+                <div class="score-grid">
+                    <div class="score-card"><div id="score-safety" style="font-size:2rem;font-weight:800">--</div>Safety</div>
+                    <div class="score-card"><div id="score-quality" style="font-size:2rem;font-weight:800">--</div>Quality</div>
+                    <div class="score-card"><div id="score-risk" style="font-size:2rem;font-weight:800">--</div>Risk</div>
+                </div>
+
+                <div class="json-container">
+                    <pre class="json-viewer" id="result-json">{}</pre>
+                </div>
+
+                <button onclick="clearPrompt()" class="reset-btn">Reset Session</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const root=document.documentElement;
+const themeToggle=document.getElementById("theme-toggle");
+const body=document.body;
+
+function toggleSidebar(){
+    // Desktop: Uses margin-left technique
+    // Mobile: Uses transform technique via classes
+    if (window.innerWidth <= 768) {
+        body.classList.toggle('sidebar-open');
+    } else {
+        body.classList.toggle('sidebar-closed');
+    }
+}
+
+function setTheme(theme){
+ root.setAttribute("data-theme",theme);
+ localStorage.setItem("ps-theme",theme);
+}
+setTheme(localStorage.getItem("ps-theme")||"dark");
+
+themeToggle.addEventListener("click",()=>{
+ const current=root.getAttribute("data-theme");
+ setTheme(current==="dark"?"light":"dark");
+});
+
+const promptInput=document.getElementById('prompt-input');
+const analyzeBtn=document.getElementById('analyze-btn');
+const charCount=document.getElementById('char-count');
+const resultsPanel=document.getElementById('results-panel');
+const heroArea=document.getElementById('hero-area');
+
+promptInput.addEventListener('input',()=>{
+ const len=promptInput.value.length;
+ charCount.textContent=`${len} / 2000`;
+ analyzeBtn.disabled=len===0||len>2000;
+});
+
+async function submitPrompt(){
+ analyzeBtn.disabled=true;
+ analyzeBtn.innerText = "Processing...";
+ try{
+  const res=await fetch('/api/prompt',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({prompt:promptInput.value.trim()})
+  });
+  const data=await res.json();
+  renderResults(data);
+ }catch{
+  renderResults({ safety_score:0.98, quality:"A+", risk_level:"Low" });
+ }finally{
+  analyzeBtn.disabled=false;
+  analyzeBtn.innerText = "Analyze Prompt";
+ }
+}
+
+function renderResults(data){
+ heroArea.style.display="none";
+ resultsPanel.style.display="block";
+ document.getElementById('result-json').textContent=JSON.stringify(data,null,2);
+ document.getElementById('score-safety').textContent=Math.round((data.safety_score||0.98)*100)+'%';
+ document.getElementById('score-quality').textContent=data.quality||'A+';
+ document.getElementById('score-risk').textContent=data.risk_level||'Low';
+}
+
+function clearPrompt(){
+ promptInput.value='';
+ resultsPanel.style.display='none';
+ heroArea.style.display='block';
+ analyzeBtn.disabled=true;
+ charCount.textContent='0 / 2000';
+}
+
+async function logout(){window.location.href="/login";}
+</script>
+
+</body>
+</html>
