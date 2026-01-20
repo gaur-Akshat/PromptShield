@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromptShield | Intelligence Console</title>
+    <title>PromptShield | Settings</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
@@ -379,7 +379,7 @@
                 <span class="logo-text">PromptShield</span>
             </div>
             <nav class="nav-list">
-                <a href="#" class="nav-link active">
+                <a href="dashboard" class="nav-link active">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-5 5"/></svg>
                     <span>Dashboard</span>
                 </a>
@@ -434,29 +434,35 @@
             <div class="workspace">
                 <div class="hero-section" id="hero-area">
                     <div class="hero-text">
-                        <h1>Hello, <span id="display-name">Guest</span></h1>
+                        <h1>Settings</h1>
                     </div>
                 </div>
 
                 <div class="prompt-box">
-                    <textarea id="prompt-input" placeholder="Paste your prompt here to analyze..."></textarea>
-                    <div class="action-bar">
-                        <div class="char-count" id="char-count">0 / 2000</div>
-                        <button id="analyze-btn" onclick="submitPrompt()" class="btn-analyze" disabled>Analyze Prompt</button>
+                    <div style="padding: 0; background: transparent; border: none; border-radius: 0;">
+                        <h2 style="margin-bottom: 1.5rem; color: var(--text-main);">Account Settings</h2>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Email</label>
+                                <input type="email" placeholder="your@email.com" style="width: 100%; padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); font-family: inherit;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Full Name</label>
+                                <input type="text" placeholder="Your Name" style="width: 100%; padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); font-family: inherit;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Change Password</label>
+                                <input type="password" placeholder="New Password" style="width: 100%; padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); font-family: inherit;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Confirm Password</label>
+                                <input type="password" placeholder="Confirm New Password" style="width: 100%; padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); font-family: inherit;">
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div id="results-panel" class="results-panel">
-                    <div class="score-grid">
-                        <div class="score-card"><div class="score-val" id="score-safety" style="color:var(--success)">--</div><div class="score-label">Safety</div></div>
-                        <div class="score-card"><div class="score-val" id="score-quality" style="color:var(--primary)">--</div><div class="score-label">Quality</div></div>
-                        <div class="score-card"><div class="score-val" id="score-risk" style="color:var(--warning)">--</div><div class="score-label">Risk</div></div>
-                    </div>
-                    <div class="json-view">
-                        <pre id="result-json">{}</pre>
-                    </div>
-                    <div style="text-align:right">
-                        <button onclick="clearPrompt()" class="reset-btn">Reset Session</button>
+                    <div class="action-bar" style="margin-top: 2rem; padding-top: 1.5rem;">
+                        <div></div>
+                        <button class="btn-analyze">Save Settings</button>
                     </div>
                 </div>
             </div>
@@ -539,11 +545,9 @@ function updateUI(user) {
     const name = user.full_name || user.username || "User";
     const email = user.email || "";
 
-    const displayName = document.getElementById("display-name");
     const profileName = document.getElementById("profile-name");
     const profileEmail = document.getElementById("profile-email");
 
-    if(displayName) displayName.textContent = name;
     if(profileName) profileName.textContent = name;
     if(profileEmail) profileEmail.textContent = email;
 
@@ -561,79 +565,13 @@ function updateUI(user) {
 fetchCurrentUser();
 
 /* ===============================
-   PROMPT ANALYSIS
-================================*/
-const promptInput = document.getElementById("prompt-input");
-const analyzeBtn = document.getElementById("analyze-btn");
-const charCount = document.getElementById("char-count");
-const resultsPanel = document.getElementById("results-panel");
-const heroArea = document.getElementById("hero-area");
-
-promptInput.addEventListener("input", () => {
-    const len = promptInput.value.length;
-    charCount.textContent = `${len} / 2000`;
-    analyzeBtn.disabled = len === 0 || len > 2000;
-
-    promptInput.style.height = "auto";
-    promptInput.style.height = promptInput.scrollHeight + "px";
-});
-
-async function submitPrompt() {
-    analyzeBtn.disabled = true;
-    analyzeBtn.innerText = "Scanning...";
-
-    try {
-        const res = await fetch("/api/prompt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: promptInput.value.trim() })
-        });
-
-        const data = await res.json();
-        renderResults(data);
-
-    } catch {
-        renderResults({ safety_score: 0.98, quality: "A+", risk_level: "Low" });
-    } finally {
-        analyzeBtn.disabled = false;
-        analyzeBtn.innerText = "Analyze Prompt";
-    }
-}
-
-function renderResults(data) {
-    heroArea.style.display = "none";
-    resultsPanel.style.display = "block";
-
-    document.getElementById("result-json").textContent =
-        JSON.stringify(data, null, 2);
-
-    document.getElementById("score-safety").textContent =
-        Math.round((data.safety_score || 0.98) * 100) + "%";
-
-    document.getElementById("score-quality").textContent =
-        data.quality || "A+";
-
-    document.getElementById("score-risk").textContent =
-        data.risk_level || "Low";
-}
-
-function clearPrompt() {
-    promptInput.value = "";
-    charCount.textContent = "0 / 2000";
-    resultsPanel.style.display = "none";
-    heroArea.style.display = "block";
-    analyzeBtn.disabled = true;
-    promptInput.style.height = "auto";
-}
-
-/* ===============================
    LOGOUT
 ================================*/
 async function logout() {
     await fetch("/api/logout", { method: "POST" });
     window.location.href = "/login";
 }
-</script>
+    </script>
 
 </body>
 </html>

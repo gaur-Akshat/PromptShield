@@ -6,41 +6,76 @@
     <title>Sign In — PromptShield</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Caveat:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --accent: #4f46e5;
-            --accent-hover: #4338ca;
-            --success: #10b981;
-            --error: #ef4444;
+            --radius: 12px;
         }
 
         [data-theme="dark"] {
-            --bg-page: #0a0a0a;
-            --bg-card: #111111;
-            --bg-sidebar: #0e0e0e;
-            --text-main: #f5f5f5;
-            --text-muted: #888888;
-            --border: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.14);
-            --grid-opacity: 0.05;
-            --input-bg: rgba(255, 255, 255, 0.02);
-            --shadow-card: 0 20px 40px rgba(0,0,0,0.4);
+            --bg-page: #0a0a0f;
+            --bg-card: #18181b;
+            --bg-sidebar: #0e0e11;
+            
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            
+            --border: #27272a;
+            --border-hover: #3f3f46;
+            
+            --primary: #7c3aed;
+            --primary-hover: #6d28d9;
+            --on-primary: #ffffff;
+            
+            --input-bg: rgba(39, 39, 42, 0.5);
+            
+            --toggle-track: #27272a;
+            --toggle-thumb: #ffffff;
+            
+            --doodle-color: rgba(255, 255, 255, 0.12);
+            --blob-opacity: 0.5;
+            --gradient-1: rgba(124, 58, 237, 0.25);
+            --gradient-2: rgba(59, 130, 246, 0.2);
+
+            --accent: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         [data-theme="light"] {
             --bg-page: #ffffff;
             --bg-card: #ffffff;
-            --bg-sidebar: #f8f9fa;
-            --text-main: #111111;
-            --text-muted: #666666;
-            --border: rgba(0, 0, 0, 0.08);
-            --border-hover: rgba(0, 0, 0, 0.12);
-            --grid-opacity: 0.03;
-            --input-bg: #fcfcfc;
-            --shadow-card: 0 10px 30px rgba(0,0,0,0.05);
+            --bg-sidebar: #f8fafc;
+            
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            
+            --border: #e4e4e7;
+            --border-hover: #d4d4d8;
+            
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --on-primary: #ffffff;
+            
+            --input-bg: #f4f4f5;
+            
+            --toggle-track: #e4e4e7;
+            --toggle-thumb: #ffffff;
+            
+            --doodle-color: rgba(0, 0, 0, 0.08);
+            --blob-opacity: 0.6;
+            --gradient-1: rgba(99, 102, 241, 0.15);
+            --gradient-2: rgba(14, 165, 233, 0.1);
+            
+            --accent: #0ea5e9;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --shadow-card: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,405 +84,314 @@
             font-family: var(--font-main);
             background-color: var(--bg-page);
             color: var(--text-main);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
+            overflow: hidden;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
+            transition: background-color 0.5s ease;
         }
 
+        /* --- BACKGROUND LAYERS --- */
+        .noise-overlay {
+            position: fixed; inset: 0; z-index: -1; opacity: 0.03; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .bg-blobs {
+            position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden;
+        }
+        
+        .blob {
+            position: absolute; width: 800px; height: 800px; 
+            border-radius: 50%; opacity: var(--blob-opacity);
+            filter: blur(100px);
+            animation: float 25s infinite alternate ease-in-out;
+        }
+        
+        .blob-1 { top: -200px; left: -200px; background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%); }
+        .blob-2 { bottom: -200px; right: -200px; background: radial-gradient(circle, rgba(34, 211, 238, 0.2) 0%, transparent 70%); animation-delay: -5s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 30px); }
+        }
+
+        .bg-doodles {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+        }
+        
+        .doodle {
+            position: absolute; fill: none; stroke: var(--doodle-color); stroke-width: 1.5; stroke-linecap: round;
+            opacity: 0.6; transition: stroke 0.3s ease;
+        }
+        
+        .squiggle-1 { top: 10%; left: 5%; width: 100px; transform: rotate(-10deg); }
+        .squiggle-2 { bottom: 15%; right: 5%; width: 80px; transform: rotate(15deg); }
+        .circle-1 { top: 20%; right: 20%; width: 30px; }
+        .cross-1 { bottom: 10%; left: 15%; width: 25px; transform: rotate(45deg); }
+
+        /* --- LAYOUT --- */
         .login-container {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
+            display: flex; width: 100%; height: 100%; position: relative; z-index: 1;
         }
 
         /* --- SIDEBAR --- */
         .sidebar {
-            flex: 1;
-            max-width: 480px;
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
-            padding: 60px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
+            flex: 1; max-width: 480px; background: var(--bg-sidebar);
+            border-right: 1px solid var(--border); padding: 64px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; overflow: hidden;
+
+            opacity: 0;
+            animation: sidebarIn 0.8s ease forwards;
         }
 
-        .bg-grid {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                linear-gradient(to right, var(--text-muted) 1px, transparent 1px),
-                linear-gradient(to bottom, var(--text-muted) 1px, transparent 1px);
-            background-size: 60px 60px;
-            opacity: var(--grid-opacity);
-            z-index: 0;
-        }
 
-        .sidebar-content {
-            position: relative;
-            z-index: 1;
-        }
 
         .sidebar h2 {
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: -0.04em;
-            line-height: 1.1;
-            margin-bottom: 24px;
+            font-size: 2.5rem; font-weight: 700; letter-spacing: -0.03em;
+            line-height: 1.1; margin-bottom: 32px; color: var(--text-main);
+            opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
         }
 
-        .info-list {
-            list-style: none;
-            margin-top: 48px;
-        }
-
-        .info-item {
-            margin-bottom: 32px;
-        }
+        .info-list { list-style: none; margin-top: 48px; }
+        .info-item { margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s forwards; }
+        .info-item:nth-child(1) { animation-delay: 0.3s; }
+        .info-item:nth-child(2) { animation-delay: 0.4s; }
+        .info-item:nth-child(3) { animation-delay: 0.5s; }
 
         .info-item h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 1rem; font-weight: 600; margin-bottom: 8px; color: var(--text-main);
+            display: flex; align-items: center; gap: 10px;
         }
-
         .info-item h4::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
+            content: ''; width: 8px; height: 8px; background: var(--primary); border-radius: 50%;
         }
-
         .info-item p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            padding-left: 16px;
+            font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; padding-left: 18px;
         }
 
         .sidebar-footer {
-            position: relative;
-            z-index: 1;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            gap: 20px;
+            font-size: 0.85rem; color: var(--text-muted); display: flex;
+            justify-content: center;
+            opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
         }
 
         /* --- FORM AREA --- */
         .form-area {
-            flex: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            position: relative;
+            flex: 2; display: flex; align-items: center; justify-content: center;
+            padding: 40px; position: relative;
         }
 
         .theme-toggle-container {
-            position: absolute;
-            top: 24px;
-            right: 24px;
+            position: absolute; top: 32px; right: 32px;
+            width: 52px; height: 28px; background: var(--toggle-bg);
+            border: 1px solid var(--toggle-border); border-radius: 99px;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; padding: 2px;
+            opacity: 0; animation: fadeIn 0.8s 0.8s forwards;
+        }
+        
+        .switch-thumb {
+            width: 22px; height: 22px; background: var(--toggle-thumb);
+            border-radius: 50%; position: absolute; top: 2px; left: 2px;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .theme-toggle {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            transition: var(--transition);
-        }
-
-        .theme-toggle:hover {
-            color: var(--text-main);
-            border-color: var(--border-hover);
-        }
-
-        .theme-toggle svg { width: 16px; height: 16px; }
-        [data-theme="dark"] .sun-icon { display: block; }
-        [data-theme="dark"] .moon-icon { display: none; }
-        [data-theme="light"] .sun-icon { display: none; }
-        [data-theme="light"] .moon-icon { display: block; }
+        :root[data-theme="dark"] .switch-thumb { transform: translateX(24px); }
+        .icon-sun, .icon-moon { width: 14px; height: 14px; stroke-width: 2.5; }
+        .icon-sun { color: #f59e0b; display: none; }
+        .icon-moon { color: #6366f1; display: none; }
+        :root[data-theme="dark"] .icon-moon { display: block; }
+        :root[data-theme="light"] .icon-sun { display: block; }
 
         /* --- AUTH CARD --- */
         .auth-card {
-            width: 100%;
-            max-width: 400px;
-            animation: fadeIn 0.6s ease;
+            width: 100%; max-width: 420px; 
+            opacity: 0; animation: zoomIn 0.6s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
         .logo-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 32px;
-            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; cursor: pointer;
         }
 
-        .logo-upload-box {
-            width: 48px;
-            height: 48px;
-            background: var(--accent);
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            transition: var(--transition);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .logo-upload-box:hover { transform: scale(1.05); }
-
-        .logo-upload-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-
-        .logo-upload-box svg { width: 20px; height: 20px; stroke: white; }
 
         .logo-area h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            color: var(--text-main);
+            font-size: 3rem; font-weight: 700; letter-spacing: -0.02em;
+            color: var(--text-main); font-family: 'Caveat', cursive;
         }
 
         .hidden-input { display: none; }
+        .auth-card > p { font-size: 1rem; color: var(--text-muted); margin-bottom: 32px; text-align: center; }
 
         /* --- SOCIAL BUTTONS --- */
-        .social-auth {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
+        .social-auth { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        
         .btn-social {
-            height: 40px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--input-bg);
-            color: var(--text-main);
-            font-size: 0.85rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: var(--transition);
+            height: 44px; border-radius: var(--radius); border: 1px solid var(--border);
+            background: var(--bg-card); color: var(--text-main); font-size: 0.9rem; font-weight: 500;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; transition: all 0.2s;
         }
-
-        .btn-social:hover {
-            background: var(--bg-page);
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
-        }
+        .btn-social:hover { border-color: var(--text-muted); transform: translateY(-1px); }
 
         .divider {
-            display: flex;
-            align-items: center;
-            margin-bottom: 24px;
-            color: var(--border);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            display: flex; align-items: center; margin-bottom: 24px;
+            color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;
         }
-
-        .divider::before, .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .divider span { margin: 0 16px; color: var(--text-muted); }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+        .divider span { margin: 0 16px; }
 
         /* --- INPUTS --- */
-        .form-group { margin-bottom: 20px; position: relative; }
-
+        .form-group { margin-bottom: 20px; }
         .form-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;
         }
 
-        .input-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
+        .input-container { position: relative; }
         .form-group input {
-            width: 100%;
-            height: 42px;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0 14px;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-            transition: var(--transition);
+            width: 100%; height: 44px; background: var(--input-bg);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 0 16px; color: var(--text-main); font-family: inherit; font-size: 0.95rem;
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s;
         }
-
         .form-group input:focus {
-            border-color: var(--accent);
-            background: var(--bg-page);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
         .toggle-password {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            padding: 4px;
-            border-radius: 4px;
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            padding: 4px; display: flex; align-items: center;
         }
-
         .toggle-password:hover { color: var(--text-main); }
 
         /* --- CONTROLS --- */
         .auth-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
         }
 
         .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
+            display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
         }
-
-        .checkbox-group input {
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
-
-        .checkbox-group span {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
+        .checkbox-group input { accent-color: var(--primary); width: 16px; height: 16px; }
+        .checkbox-group span { font-size: 0.9rem; color: var(--text-muted); }
 
         .forgot-link {
-            font-size: 0.8rem;
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
+            font-size: 0.9rem; color: var(--primary); text-decoration: none; font-weight: 500;
         }
-
         .forgot-link:hover { text-decoration: underline; }
 
         /* --- CTA BUTTON --- */
-        .btn-primary {
+       .btn-primary {
             width: 100%;
-            height: 44px;
-            background: var(--accent);
-            color: white;
+            height: 48px;
+            background: var(--primary);
+            color: var(--on-primary);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius);
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 1rem;
             cursor: pointer;
-            transition: var(--transition);
-            border-top: 1px solid rgba(255,255,255,0.1);
+
+            /* layout fix */
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+
+            transition: all 0.2s ease;
         }
 
-        .btn-primary:hover {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
 
-        .btn-primary:active { transform: translateY(0); }
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
 
         .spinner {
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             border: 2px solid rgba(255,255,255,0.3);
             border-top-color: #fff;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
+
+            position: absolute;
             display: none;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .auth-footer {
-            margin-top: 24px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .auth-footer a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
+        .auth-footer { margin-top: 32px; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
+        .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
         .auth-footer a:hover { text-decoration: underline; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
-        @media (max-width: 1024px) {
-            .sidebar { display: none; }
-        }
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sidebarIn {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+
+        @media (max-width: 1024px) { .sidebar { display: none; } }
     </style>
 </head>
 <body>
 
+    <div class="noise-overlay"></div>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    <div class="bg-doodles">
+        <svg class="doodle squiggle-1" viewBox="0 0 100 20"><path d="M0,10 Q25,20 50,10 T100,10" fill="none"/></svg>
+        <svg class="doodle squiggle-2" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 T100,10" fill="none"/></svg>
+        <svg class="doodle circle-1" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none"/></svg>
+    </div>
+
     <div class="login-container">
         <!-- Sidebar with Premium Info -->
         <aside class="sidebar">
-            <div class="bg-grid"></div>
-            
             <div class="sidebar-content">
                 <h2>Systematic safety for the AI-native enterprise.</h2>
-                
                 <ul class="info-list">
                     <li class="info-item">
                         <h4>Prompt Sanitization</h4>
-                        <p>Automatically detect and neutralize adversarial injection patterns in real-time.</p>
+                        <p>Neutralize injection attacks and exfiltration attempts before they reach your models.</p>
                     </li>
                     <li class="info-item">
                         <h4>Compliance Guardrails</h4>
@@ -459,32 +403,27 @@
                     </li>
                 </ul>
             </div>
-
             <div class="sidebar-footer">
-                <span>&copy; 2024 PromptShield</span>
-                <span>Security Compliance</span>
+                <span>&copy; 2025 PromptShield</span>
             </div>
         </aside>
 
         <!-- Main Form Area -->
         <main class="form-area">
-            <div class="theme-toggle-container">
-                <button class="theme-toggle" id="theme-btn" title="Toggle Theme">
-                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                </button>
+            <div class="theme-toggle-container" id="theme-btn" title="Toggle Theme">
+                <div class="switch-thumb">
+                    <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"></path></svg>
+                    <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </div>
             </div>
 
             <div class="auth-card">
                 <label for="logo-upload" class="logo-area">
-                    <div class="logo-upload-box" id="logo-preview-box">
-                        <svg id="default-logo-icon" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        <img id="logo-img" src="" alt="Brand Logo">
-                    </div>
                     <h1>PromptShield</h1>
-                    <input type="file" id="logo-upload" class="hidden-input" accept="image/*">
-                </label>
+                    </label>
                 
+                <p>Sign in to your security console</p>
+
                 <div class="social-auth">
                     <button class="btn-social">
                         <svg width="18" height="18" viewBox="0 0 24 24">
@@ -503,19 +442,19 @@
                     </button>
                 </div>
 
-                <div class="divider"><span>or sign in with email</span></div>
+                <div class="divider"><span>or continue with email</span></div>
 
                 <form id="login-form">
                     <div class="form-group">
                         <label for="identifier">Username or Email</label>
-                        <input type="text" id="identifier" placeholder="Enter your username or email" required>
+                        <input type="text" id="identifier" placeholder="name@company.com" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
                         <div class="input-container">
                             <input type="password" id="password" placeholder="••••••••" required>
                             <button type="button" class="toggle-password" id="toggle-pw" title="Show password">
-                                <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </div>
                     </div>
@@ -541,96 +480,84 @@
         </main>
     </div>
 
-    <script>
-        const html = document.documentElement;
-        const themeBtn = document.getElementById('theme-btn');
-        const logoUpload = document.getElementById('logo-upload');
-        const logoImg = document.getElementById('logo-img');
-        const defaultIcon = document.getElementById('default-logo-icon');
-        const previewBox = document.getElementById('logo-preview-box');
-        
-        const passwordInput = document.getElementById('password');
-        const togglePw = document.getElementById('toggle-pw');
-        const loginForm = document.getElementById('login-form');
-        const loginBtn = document.getElementById('login-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoader = document.getElementById('btn-loader');
+<script>
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('theme-btn');
 
-        // Theme Management
-        function updateTheme(theme) {
-            html.setAttribute('data-theme', theme);
-            localStorage.setItem('ps-theme', theme);
-        }
+    const passwordInput = document.getElementById('password');
+    const togglePw = document.getElementById('toggle-pw');
+    const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('login-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnLoader = document.getElementById('btn-loader');
+    const identifierInput = document.getElementById('identifier');
 
-        const savedTheme = localStorage.getItem('ps-theme') || 'dark';
-        updateTheme(savedTheme);
 
-        themeBtn.addEventListener('click', () => {
-            const current = html.getAttribute('data-theme');
-            updateTheme(current === 'dark' ? 'light' : 'dark');
-        });
-
-        // Password Visibility Toggle
-        togglePw.addEventListener('click', () => {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            togglePw.style.color = type === 'text' ? 'var(--accent)' : 'var(--text-muted)';
-        });
-
-        // Image Upload Logic
-        logoUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    logoImg.src = event.target.result;
-                    logoImg.style.display = 'block';
-                    defaultIcon.style.display = 'none';
-                    previewBox.style.background = 'transparent';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const identifier = document.getElementById("identifier").value.trim();
-    const password = passwordInput.value;
-
-    if (!identifier || !password) return;
-
-    loginBtn.disabled = true;
-    btnText.textContent = "Verifying...";
-    btnLoader.style.display = "block";
-
-    try {
-        const res = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: identifier,
-                password: password
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            window.location.href = "/dashboard";
-        } else {
-            alert(data.message || "Login failed");
-        }
-
-    } catch (err) {
-        alert("Network error. Try again.");
-    } finally {
-        loginBtn.disabled = false;
-        btnText.textContent = "Sign In";
-        btnLoader.style.display = "none";
+    // ================= THEME =================
+    function updateTheme(theme) {
+        html.setAttribute('data-theme', theme);
+        localStorage.setItem('ps-theme', theme);
     }
-});
 
-    </script>
+    const savedTheme = localStorage.getItem('ps-theme') || 'dark';
+    updateTheme(savedTheme);
+
+    themeBtn.addEventListener('click', () => {
+        const current = html.getAttribute('data-theme');
+        updateTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+
+    // ================= PASSWORD TOGGLE =================
+    togglePw.addEventListener('click', () => {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+    });
+
+
+    // ================= LOGIN HANDLER =================
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const identifier = identifierInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if(!identifier || !password){
+            alert("Please enter username and password.");
+            return;
+        }
+
+        // UI loading state
+        loginBtn.disabled = true;
+        btnText.style.opacity = "0";
+        btnLoader.style.display = "block";
+
+        try {
+            const res = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: identifier,
+                    password: password
+                })
+            });
+
+            const data = await res.json();
+
+            if(res.ok && data.success){
+                window.location.href = "/dashboard";
+            } else {
+                throw new Error(data.message || "Invalid credentials");
+            }
+
+        } catch(err){
+            alert(err.message);
+
+            loginBtn.disabled = false;
+            btnText.style.opacity = "1";
+            btnLoader.style.display = "none";
+        }
+    });
+</script>
 </body>
 </html>
