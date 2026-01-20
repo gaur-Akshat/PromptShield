@@ -82,7 +82,41 @@ def signup_page():
 def dashboard():
     if "user_id" not in session:
         return redirect("/login")
-    return render_template("dashboard.html", username=session.get("username"))
+    return render_template("dashboard.html")
+
+@app.route("/history")
+def history_page():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("history.html")
+
+@app.route("/analytics")
+def analytics_page():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("analytics.html")
+
+@app.route("/settings")
+def settings_page():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("settings.html")
+
+@app.route("/profile")
+def profile_page():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("profile.html")
+
+@app.route("/report")
+def report_page():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("report.html")
+
+@app.route("/docs")
+def docs():
+    return render_template("docs.html")
 
 # ------------------------------------------------
 # API Routes
@@ -96,6 +130,7 @@ def signup():
         return error("JSON required")
 
     username = data.get("username","").strip()
+    full_name = data.get("full_name","").strip()
     email = data.get("email","").strip().lower()
     password = data.get("password","")
 
@@ -108,22 +143,29 @@ def signup():
     if not validate_password(password):
         return error("Password must be at least 8 characters")
 
-    if execute_one("SELECT id FROM users WHERE username=%s OR email=%s", (username,email)):
-        return error("User already exists",409)
-
     password_hash = generate_password_hash(password)
 
-    user_id = execute_insert(
-        "INSERT INTO users (username,email,password_hash) VALUES (%s,%s,%s)",
-        (username,email,password_hash)
-    )
+    try:
+        user_id = execute_insert(
+            "INSERT INTO users (username,full_name,email,password_hash) VALUES (%s,%s,%s,%s)",
+            (username, full_name or None, email, password_hash)
+        )
+    except Exception as e:
+        if "1062" in str(e) or "Duplicate" in str(e):
+            return error("Username or email already exists",409)
+        return error("Database error",500)
 
     session.clear()
     session["user_id"] = user_id
     session["username"] = username
+    session["full_name"] = full_name or username
     session.permanent = True
 
-    return success("Signup successful", {"id":user_id,"username":username},201)
+    return success(
+        "Signup successful",
+        {"id": user_id, "username": username, "full_name": session["full_name"]},
+        201
+    )
 
 # ------------------------------------------------
 
@@ -138,24 +180,55 @@ def login():
     password = data.get("password","")
 
     user = execute_one(
-        "SELECT id, username, password_hash FROM users WHERE username=%s OR email=%s",
-        (identifier,identifier)
+        "SELECT id, username, password_hash, full_name FROM users WHERE username=%s OR email=%s",
+        (identifier, identifier)
     )
 
     if not user:
         return error("Invalid credentials",401)
 
-    user_id, username, password_hash = user
+    user_id, username, password_hash, full_name = user
 
-    if not check_password_hash(password_hash,password):
+    if not check_password_hash(password_hash, password):
         return error("Invalid credentials",401)
 
     session.clear()
     session["user_id"] = user_id
     session["username"] = username
+    session["full_name"] = full_name or username
     session.permanent = True
 
-    return success("Login successful",{"id":user_id,"username":username})
+    return success(
+        "Login successful",
+        {"id": user_id, "username": username, "full_name": session["full_name"]}
+    )
+
+# ------------------------------------------------
+
+@app.route("/api/me")
+def get_current_user():
+    if "user_id" not in session:
+        return jsonify({"authenticated": False}), 200
+
+    user_row = execute_one(
+        "SELECT id, username, email, full_name FROM users WHERE id = %s",
+        (session["user_id"],)
+    )
+
+    if not user_row:
+        return jsonify({"authenticated": False}), 404
+
+    uid, username, email, full_name = user_row
+
+    return jsonify({
+        "authenticated": True,
+        "data": {
+            "id": uid,
+            "username": username,
+            "email": email,
+            "full_name": full_name or username
+        }
+    }), 200
 
 # ------------------------------------------------
 
@@ -171,21 +244,23 @@ def check_auth():
     if "user_id" in session:
         return success("Authenticated",{
             "id":session["user_id"],
-            "username":session["username"]
+            "username":session["username"],
+            "full_name": session.get("full_name", session["username"])
         })
+
     return jsonify({"authenticated":False}),200
 
 # ------------------------------------------------
 # Error Handlers
 # ------------------------------------------------
 
-@app.errorhandler(404)
-def not_found(e):
-    return error("Endpoint not found",404)
-
 @app.errorhandler(500)
 def internal(e):
     return error("Internal server error",500)
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("error.html"), 404
 
 # ------------------------------------------------
 # Initialization
