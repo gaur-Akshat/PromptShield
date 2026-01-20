@@ -33,20 +33,23 @@ _connection_pool: Optional[pooling.MySQLConnectionPool] = None
 
 
 def initialize_pool():
-    """
-    Initialize MySQL connection pool.
-    Should be called once at application startup.
-    """
     global _connection_pool
     try:
+        print("==== DATABASE CONNECTION INFO ====")
+        print("HOST:", DB_CONFIG["host"])
+        print("USER:", DB_CONFIG["user"])
+        print("DATABASE:", DB_CONFIG["database"])
+        print("=================================")
+
         _connection_pool = pooling.MySQLConnectionPool(
             **POOL_CONFIG,
             **DB_CONFIG
         )
-        print(f"✓ Connection pool initialized successfully")
+        print("✓ Connection pool initialized successfully")
     except Error as e:
         print(f"✗ Error creating connection pool: {e}")
         raise
+
 
 
 def get_connection():
@@ -179,6 +182,7 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
+        full_name VARCHAR(150) DEFAULT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -192,6 +196,7 @@ def create_tables():
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(create_users_table)
+            cursor.close()
             print("✓ Database tables created/verified successfully")
     except Error as e:
         print(f"✗ Error creating tables: {e}")
@@ -215,4 +220,3 @@ def test_connection() -> bool:
     except Error as e:
         print(f"Connection test failed: {e}")
         return False
-
